@@ -1,39 +1,25 @@
 var db = require('../db');
 
-// console.log('db -------------------> ', db);
-
-
-
 module.exports = {
   messages: {
     // a function which produces all the messages
     get: function (cb) {
       console.log('SELECT * FROM messages;');
+
       var query = `SELECT messages.id, messages.text, messages.date, users.username, rooms.roomname
         FROM messages INNER JOIN users ON (users.id = messages.id_users)
-        INNER JOIN rooms ON (rooms.id = messages.id_rooms);`;
+        INNER JOIN rooms ON (rooms.id = messages.id_rooms)
+        ORDER by messages.id desc;`;
 
-      var results = [];
+      db.query(query, (err, results) => {
+        results = {results: results};
 
-
-
-      db.query(query, (error, messages, fields) => {
-        // if (error) throw error;
-        // console.log('The solution is: ', messages);
-        // console.log('The solution is: ', results[0].solution);
-        messages.forEach(function(message) {
-          results.push(message);
-        });
-        // results.push(messages[1]);
-
-        // console.log('results', results[0]);
-
-        cb(results);
+        cb(err, results);
       });
 
     },
     // a function which can be used to insert a message into the database
-    post: function (post, cb) {
+    post: function (params, cb) {
 
       // var username = 'User1';
       // var roomname = 'Room1';
@@ -44,15 +30,18 @@ module.exports = {
       // (SELECT id FROM users WHERE username = 'User1'),
       // (SELECT id FROM rooms WHERE roomname = 'Room1'));`;
 
-      var query = `INSERT INTO messages VALUES (null, '${post.text}', null,
-      (SELECT id FROM users WHERE username = '${post.username}'),
-      (SELECT id FROM rooms WHERE roomname = '${post.roomname}'));`;
+      var query = `INSERT INTO messages (id_users, text, id_rooms)
+      VALUES ((SELECT id FROM users WHERE username = ? limit 1), ?,
+      (SELECT id FROM rooms WHERE roomname = ? limit 1));`;
+
+      // (null, '${params.text}', null,
+      // (SELECT id FROM users WHERE username = '${params.username}'),
+      // (SELECT id FROM rooms WHERE roomname = '${params.roomname}'));`;
 
       console.log('query', query);
-
-      db.query(query, (error, messages, fields) => {
-        if (error) throw error;
-        cb();
+      console.log('params', params);
+      db.query(query, params, (error, results) => {
+        cb(error, results);
       });
 
     }
@@ -60,8 +49,20 @@ module.exports = {
 
   users: {
     // Ditto as above.
-    get: function () {},
-    post: function () {}
+    get: function (callback) {
+      console.log('SELECT * FROM users');
+      var query = 'SELECT * FROM users';
+      db.query(query, (err, results) => {
+        callback(err, results);
+      });
+    },
+    post: function (params, callback) {
+      console.log('PARAMS should be user', params);
+      var query = 'INSERT INTO users(username) VALUE (?)';
+      db.query(query, params, (error, results) => {
+        callback(error, results);
+      });
+    }
   }
 };
 
