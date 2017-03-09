@@ -18,7 +18,7 @@ app.set('port', 3005);
 app.use(morgan('dev'));
 app.use(parser.json());
 app.use(parser.urlencoded({
- extended: true
+  extended: true
 }));
 
 // Set up our routes
@@ -32,4 +32,3 @@ if (!module.parent) {
   app.listen(app.get('port'));
   console.log('Listening on', app.get('port'));
 }
-
