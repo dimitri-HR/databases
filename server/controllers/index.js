@@ -16,54 +16,65 @@ var models = require('../models');
 var results = models.messages;
 console.log('Controllers models.messages', models.messages);
 
- // [ RowDataPacket {
- //    id: 50,
- //    text: 'Message1',
- //    date: 2017-03-04T04:54:05.000Z,
- //    id_users: 10,
- //    id_rooms: 200 } ]
-
-
-
-
 module.exports = {
   // a function which handles a get request for all messages
   // ...classes/messages
   messages: {
     get: function (req, res) {
-      var messages = models.messages.get(function(messages) {
-        var obj = {
-          results: messages
-        };
-        res.send(obj);
+      models.messages.get(function(err, results) {
+        if (err) { console.error(err); }
+        res.json(results);
       });
     },
 
     // a function which handles posting a message to the database
     post: function (req, res) {
-      var data = '';
-      req.on('data', function(chunk) {
-        data += chunk;
+      var params = [req.body.username, req.body.text, req.body.roomname];
+      models.messages.post(params, function(err, results) {
+        if (err) { /* do something */ }
+        res.sendStatus(201);
       });
-      req.on('end', function() {
-        var arr = data.split('&').join('=').split('=');
-        var userData = {
-          username: arr[1],
-          text: arr[3],
-          roomname: arr[5]
-        };
-          console.log('userData',userData);
-          var message = models.messages.post(userData, function(messages) {
-            res.send('Message posted!');
-          });
-      });
+
+      // var data = '';
+
+      // req.on('data', function(chunk) {
+      //   data += chunk;
+      // });
+
+      // req.on('end', function() {
+      //   var arr = data.split('&').join('=').split('=');
+      //   var userData = [
+      //     arr[1],
+      //     arr[3],
+      //     arr[5]
+      //   ];
+
+      //   models.messages.post(userData, function(err, results) {
+      //     if (err) { console.error(err); }
+      //     res.sendStatus(201);
+      //   });
+
+      // });
     }
+
   },
 
   // ...classes/users
   users: {
-    // Ditto as above
-    get: function (req, res) {},
-    post: function (req, res) {}
+    get: function (req, res) {
+      models.users.get(function(err, results) {
+        if (err) { console.error(err); }
+        res.json(results);
+      });
+    },
+
+    post: function (req, res) {
+      var params = [req.body.username];
+      console.log('Params', params);
+      models.users.post(params, function(err, results) {
+        if (err) { /* do something */ }
+        res.sendStatus(201);
+      });
+    }
   }
 };
